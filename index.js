@@ -16,6 +16,7 @@ const initPlayer = () => {
   return {
     x: randomIntFromInterval(0, 640),
     y: randomIntFromInterval(0, 480),
+    name: "Player" + this.x,
     velY: 0,
     velX: 0,
     speed: 2,
