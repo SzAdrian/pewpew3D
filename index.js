@@ -1,6 +1,14 @@
 const Express = require("express")();
 const Http = require("http").Server(Express);
 const Socketio = require("socket.io")(Http);
+Express.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
 Http.listen(4000, () => {
   console.log("Listening at :4000");
 });
