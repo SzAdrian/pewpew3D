@@ -11,6 +11,7 @@ const Socketio = require("socket.io")(Http, {
     res.end();
   },
 });
+Socketio.origins(["https://gopewpew.netlify.app/"]);
 Http.listen(3000);
 
 var players = {};
