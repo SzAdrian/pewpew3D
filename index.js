@@ -3,7 +3,7 @@ const Http = require("http").createServer(Express);
 const Socketio = require("socket.io")(Http);
 const cors = require("cors");
 Express.use(cors());
-Http.listen(process.env.PORT || 3000);
+Http.listen(process.env.PORT || 4000);
 Express.get("/go", function (req, res, next) {
   return "gogogo";
 });
@@ -49,7 +49,7 @@ Socketio.on("connection", (socket) => {
       wallCollison(data);
       players[socket.id] = data;
     }
-    Socketio.emit("position", players);
+    //Socketio.emit("position", players);
   });
   socket.on("disconnect", () => {
     delete players[socket.id];
