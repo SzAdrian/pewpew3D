@@ -1,10 +1,17 @@
 const Express = require("express")();
 const Http = require("http").Server(Express);
-const Socketio = require("socket.io")(Http);
-Socketio.set("origins", "*:*");
-Http.listen(4000, () => {
-  console.log("Listening at :4000");
+const Socketio = require("socket.io")(Http, {
+  handlePreflightRequest: (req, res) => {
+    const headers = {
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Origin": req.headers.origin, //or the specific origin you want to give access to,
+      "Access-Control-Allow-Credentials": true,
+    };
+    res.writeHead(200, headers);
+    res.end();
+  },
 });
+Http.listen(3000);
 
 var players = {};
 var clients = Socketio.sockets.clients().connected;
