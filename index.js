@@ -39,7 +39,9 @@ Socketio.on("connection", (socket) => {
     players[socket.id].moves[data] = true;
     Socketio.emit("position", players);
   });
-
+  socket.on("angle", (data) => {
+    players[socket.id].angle = data;
+  });
   socket.on("stop", (data) => {
     players[socket.id].moves[data] = false;
     Socketio.emit("position", players);
