@@ -49,7 +49,7 @@ Socketio.on("connection", (socket) => {
       wallCollison(data);
       players[socket.id] = data;
     }
-    //Socketio.emit("position", players);
+    Socketio.emit("position", players);
   });
   socket.on("disconnect", () => {
     delete players[socket.id];
