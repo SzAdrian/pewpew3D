@@ -73,3 +73,41 @@ function wallCollison(data) {
     data.velY = 0;
   }
 }
+
+function render() {
+  Object.keys(players).map((id) => {
+    let player = players[id];
+
+    if (player.moves["up"]) {
+      if (player.velY > -player.speed) {
+        player.velY--;
+      }
+    }
+
+    if (player.moves["down"]) {
+      if (player.velY < player.speed) {
+        player.velY++;
+      }
+    }
+    if (player.moves["right"]) {
+      if (player.velX < player.speed) {
+        player.velX++;
+      }
+    }
+    if (player.moves["left"]) {
+      if (player.velX > -player.speed) {
+        player.velX--;
+      }
+    }
+
+    player.velY *= player.friction;
+    player.y += player.velY;
+    player.velX *= player.friction;
+    player.x += player.velX;
+  });
+  Socketio.emit("render", players);
+}
+
+setInterval(() => {
+  render();
+}, 16);
