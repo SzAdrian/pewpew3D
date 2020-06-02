@@ -48,6 +48,7 @@ Socketio.on("connection", (socket) => {
 
   socket.on("shoot", (data) => {
     data["socket"] = socket.id;
+    data["angle"] = players[socket.id].angle;
     data["x"] = players[socket.id].x;
     data["y"] = players[socket.id].y;
     bullets.push(data);
