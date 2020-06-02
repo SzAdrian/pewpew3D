@@ -3,7 +3,7 @@ const Http = require("http").createServer(Express);
 const Socketio = require("socket.io")(Http);
 const cors = require("cors");
 Express.use(cors());
-Http.listen(3000);
+Http.listen(process.env.PORT || 3000);
 Express.get("/go", function (req, res, next) {
   return "gogogo";
 });
