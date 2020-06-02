@@ -4,7 +4,7 @@ const Socketio = require("socket.io")(Http);
 const cors = require("cors");
 Express.use(cors());
 Http.listen(3000);
-Express.get("/", function (req, res, next) {
+Express.get("/go", function (req, res, next) {
   return "gogogo";
 });
 var players = {};
