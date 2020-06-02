@@ -4,10 +4,9 @@ const Socketio = require("socket.io")(Http);
 const cors = require("cors");
 Express.use(cors());
 Http.listen(process.env.PORT || 4000);
-Express.get("/go", function (req, res, next) {
-  return "gogogo";
-});
+
 var players = {};
+var bullets = [];
 var clients = Socketio.sockets.clients().connected;
 
 function randomIntFromInterval(min, max) {
@@ -46,6 +45,13 @@ Socketio.on("connection", (socket) => {
     players[socket.id].moves[data] = false;
     Socketio.emit("position", players);
   });
+
+  socket.on("shoot", (data) => {
+    data["socket"] = socket.id;
+    bullets.push(data);
+    Socketio.emit("position", players);
+  });
+
   socket.on("disconnect", () => {
     delete players[socket.id];
     Socketio.emit("position", players);
@@ -70,6 +76,14 @@ function wallCollison(data) {
 }
 
 function render() {
+  //bullets
+  bullets.forEach((bullet) => {
+    bullet.x = bullet.x + 3 * Math.cos((Math.PI * bullet.angle) / 180);
+    bullet.y = bullet.y + 3 * Math.sin((Math.PI * bullet.angle) / 180);
+  });
+  Socketio.emit("bullets", bullets);
+
+  //players
   Object.keys(players).map((id) => {
     let player = players[id];
 
