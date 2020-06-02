@@ -48,8 +48,9 @@ Socketio.on("connection", (socket) => {
 
   socket.on("shoot", (data) => {
     data["socket"] = socket.id;
+    data["x"] = players[socket.id].x;
+    data["y"] = players[socket.id].y;
     bullets.push(data);
-    Socketio.emit("position", players);
   });
 
   socket.on("disconnect", () => {
