@@ -78,9 +78,14 @@ function wallCollison(data) {
 function render() {
   //bullets
   for (let i = 0; i < bullets.length; i++) {
-    bullet.x = bullet.x + 3 * Math.cos((Math.PI * bullet.angle) / 180);
-    bullet.y = bullet.y + 3 * Math.sin((Math.PI * bullet.angle) / 180);
-    if (bullet.x < 0 || bullet.x > 640 || bullet.y < 0 || bullet.y > 480) {
+    bullet[i].x = bullet[i].x + 3 * Math.cos((Math.PI * bullet[i].angle) / 180);
+    bullet[i].y = bullet[i].y + 3 * Math.sin((Math.PI * bullet[i].angle) / 180);
+    if (
+      bullet[i].x < 0 ||
+      bullet[i].x > 640 ||
+      bullet[i].y < 0 ||
+      bullet[i].y > 480
+    ) {
       bullets.splice(i, 1);
       i--;
     }
