@@ -37,13 +37,12 @@ Socketio.on("connection", (socket) => {
   socket.on("move", (data) => {
     players[socket.id].moves[data] = true;
   });
-  socket.on("angle", (data) => {
-    players[socket.id].angle = data;
-  });
   socket.on("stop", (data) => {
     players[socket.id].moves[data] = false;
   });
-
+  socket.on("angle", (data) => {
+    players[socket.id].angle = data;
+  });
   socket.on("disconnect", () => {
     delete players[socket.id];
   });
