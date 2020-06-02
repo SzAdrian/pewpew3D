@@ -81,8 +81,6 @@ function render() {
     bullet.x = bullet.x + 3 * Math.cos((Math.PI * bullet.angle) / 180);
     bullet.y = bullet.y + 3 * Math.sin((Math.PI * bullet.angle) / 180);
   });
-  Socketio.emit("bullets", bullets);
-
   //players
   Object.keys(players).map((id) => {
     let player = players[id];
@@ -114,7 +112,7 @@ function render() {
     player.velX *= player.friction;
     player.x += player.velX;
   });
-  Socketio.emit("render", players);
+  Socketio.emit("render", { players, bullets });
 }
 
 setInterval(() => {
