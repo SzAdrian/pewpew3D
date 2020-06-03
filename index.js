@@ -107,6 +107,7 @@ function wallCollison(data) {
 
 function render() {
   //bullets
+  console.log(bullets.length);
   for (let i = 0; i < bullets.length; i++) {
     let bullet = bullets[i];
     bullet.x = bullet.x + 3 * Math.cos((Math.PI * bullet.angle) / 180);
@@ -119,7 +120,6 @@ function render() {
       bullet.y < 0 ||
       bullet.y > 480
     ) {
-      console.log("delete this shit");
       bullets.splice(i, 1);
       i--;
     }
