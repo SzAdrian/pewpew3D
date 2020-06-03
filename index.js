@@ -72,6 +72,22 @@ Socketio.on("connection", (socket) => {
   });
 });
 
+function isHit(bullet) {
+  Object.keys(players).forEach((id) => {
+    let player = players[id];
+    if (
+      bullet.x >= player.x - 10 &&
+      bullet.y <= player.y + 10 &&
+      bullet.y >= player.y - 10 &&
+      bullet.x <= player.x + 10 &&
+      bullet.socket != id
+    ) {
+      return true;
+    }
+  });
+  return false;
+}
+
 function wallCollison(data) {
   if (data.x >= 630) {
     data.x = 630;
@@ -92,16 +108,18 @@ function wallCollison(data) {
 function render() {
   //bullets
   for (let i = 0; i < bullets.length; i++) {
-    bullets[i].x =
-      bullets[i].x + 3 * Math.cos((Math.PI * bullets[i].angle) / 180);
-    bullets[i].y =
-      bullets[i].y + 3 * Math.sin((Math.PI * bullets[i].angle) / 180);
+    let bullet = bullets[i];
+    bullet.x = bullet.x + 3 * Math.cos((Math.PI * bullet.angle) / 180);
+    bullet.y = bullet.y + 3 * Math.sin((Math.PI * bullet.angle) / 180);
+
     if (
-      bullets[i].x < 0 ||
-      bullets[i].x > 640 ||
-      bullets[i].y < 0 ||
-      bullets[i].y > 480
+      isHit(bullet) ||
+      bullet.x < 0 ||
+      bullet.x > 640 ||
+      bullet.y < 0 ||
+      bullet.y > 480
     ) {
+      console.log("delete this shit");
       bullets.splice(i, 1);
       i--;
     }
