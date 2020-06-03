@@ -55,6 +55,17 @@ Socketio.on("connection", (socket) => {
     bullets.push(data);
   });
 
+  socket.on("shotgun", (data) => {
+    for (let offset = -15; offset <= 15; offset += 10) {
+      bullets.push({
+        socket: socket.id,
+        x: players[socket.id].x,
+        y: players[socket.id].y,
+        angle: players[socket.id].angle + offset,
+      });
+    }
+  });
+
   socket.on("disconnect", () => {
     delete players[socket.id];
     Socketio.emit("position", players);
