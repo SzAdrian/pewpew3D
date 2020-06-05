@@ -9,30 +9,78 @@ var players = {};
 var bullets = [];
 var clients = Socketio.sockets.clients().connected;
 
-function randomIntFromInterval(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
+class Bullet {
+  constructor(playerX, playerY, angle, socket) {
+    this.x = playerX;
+    this.y = playerY;
+    this.angle = angle;
+    this.socket = socket;
+    this.speed = 3;
+  }
+
+  move() {
+    this.x = this.x + this.speed * Math.cos((Math.PI * this.angle) / 180);
+    this.y = this.y + this.speed * Math.sin((Math.PI * this.angle) / 180);
+  }
+
+  wallCollision() {
+    return this.x < 0 || this.x > 640 || this.y < 0 || this.y > 480;
+  }
 }
-const initPlayer = () => {
-  return {
-    x: randomIntFromInterval(0, 640),
-    y: randomIntFromInterval(0, 480),
-    name: `Player${randomIntFromInterval(0, 480)}`,
-    velY: 0,
-    velX: 0,
-    speed: 2,
-    friction: 0.96,
-    angle: 0,
-    moves: {
+
+class Player {
+  constructor() {
+    this.x = randomIntFromInterval(0, 640);
+    this.y = randomIntFromInterval(0, 480);
+    this.name = `Player${randomIntFromInterval(0, 480)}`;
+    this.velY = 0;
+    this.velX = 0;
+    this.speed = 2;
+    this.friction = 0.96;
+    this.angle = 0;
+    this.moves = {
       up: false,
       down: false,
       left: false,
       right: false,
-    },
-  };
-};
+    };
+  }
+  move() {
+    if (this.moves["up"]) {
+      if (this.velY > -this.speed) {
+        this.velY--;
+      }
+    }
+
+    if (this.moves["down"]) {
+      if (this.velY < this.speed) {
+        this.velY++;
+      }
+    }
+    if (this.moves["right"]) {
+      if (this.velX < this.speed) {
+        this.velX++;
+      }
+    }
+    if (this.moves["left"]) {
+      if (this.velX > -this.speed) {
+        this.velX--;
+      }
+    }
+
+    this.velY *= this.friction;
+    this.y += this.velY;
+    this.velX *= this.friction;
+    this.x += this.velX;
+  }
+}
+
+function randomIntFromInterval(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
 
 Socketio.on("connection", (socket) => {
-  players[socket.id] = initPlayer();
+  players[socket.id] = new Player();
   Socketio.emit("position", players);
 
   socket.on("move", (data) => {
@@ -47,22 +95,27 @@ Socketio.on("connection", (socket) => {
     Socketio.emit("position", players);
   });
 
-  socket.on("shoot", (data) => {
-    data["socket"] = socket.id;
-    data["angle"] = players[socket.id].angle;
-    data["x"] = players[socket.id].x;
-    data["y"] = players[socket.id].y;
-    bullets.push(data);
+  socket.on("shoot", () => {
+    bullets.push(
+      new Bullet(
+        players[socket.id].x,
+        players[socket.id].y,
+        players[socket.id].angle,
+        socket.id
+      )
+    );
   });
 
-  socket.on("shotgun", (data) => {
+  socket.on("shotgun", () => {
     for (let offset = -15; offset <= 15; offset += 10) {
-      bullets.push({
-        socket: socket.id,
-        x: players[socket.id].x,
-        y: players[socket.id].y,
-        angle: players[socket.id].angle + offset,
-      });
+      bullets.push(
+        new Bullet(
+          players[socket.id].x,
+          players[socket.id].y,
+          players[socket.id].angle + offset,
+          socket.id
+        )
+      );
     }
   });
 
@@ -109,16 +162,9 @@ function render() {
   //bullets
   for (let i = 0; i < bullets.length; i++) {
     let bullet = bullets[i];
-    bullet.x = bullet.x + 3 * Math.cos((Math.PI * bullet.angle) / 180);
-    bullet.y = bullet.y + 3 * Math.sin((Math.PI * bullet.angle) / 180);
+    bullet.move();
 
-    if (
-      isHit(bullet) ||
-      bullet.x < 0 ||
-      bullet.x > 640 ||
-      bullet.y < 0 ||
-      bullet.y > 480
-    ) {
+    if (bullet.wallCollision()) {
       bullets.splice(i, 1);
       i--;
     }
@@ -126,33 +172,7 @@ function render() {
   //players
   Object.keys(players).map((id) => {
     let player = players[id];
-
-    if (player.moves["up"]) {
-      if (player.velY > -player.speed) {
-        player.velY--;
-      }
-    }
-
-    if (player.moves["down"]) {
-      if (player.velY < player.speed) {
-        player.velY++;
-      }
-    }
-    if (player.moves["right"]) {
-      if (player.velX < player.speed) {
-        player.velX++;
-      }
-    }
-    if (player.moves["left"]) {
-      if (player.velX > -player.speed) {
-        player.velX--;
-      }
-    }
-
-    player.velY *= player.friction;
-    player.y += player.velY;
-    player.velX *= player.friction;
-    player.x += player.velX;
+    player.move();
   });
   Socketio.emit("render", { players, bullets });
 }
