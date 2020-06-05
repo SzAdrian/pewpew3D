@@ -118,7 +118,6 @@ Socketio.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     delete players[socket.id];
-    Socketio.emit("position", players);
   });
 });
 
