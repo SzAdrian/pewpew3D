@@ -6,6 +6,8 @@ class Bullet {
     this.socket = socket;
     this.speed = 3;
     this.damage = 3;
+    this.size = 3;
+    this.expTime = Date.now() + 2000;
   }
 
   move() {
