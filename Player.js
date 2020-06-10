@@ -11,6 +11,7 @@ class Player {
     this.speed = 2;
     this.friction = 0.96;
     this.angle = 0;
+    this.size = 10;
     this.moves = {
       up: false,
       down: false,

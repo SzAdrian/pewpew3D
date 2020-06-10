@@ -1,5 +1,6 @@
 const Player = require("./Player");
 const Bullet = require("./Bullet");
+const ShotgunBullet = require("./ShotgunBullet");
 const Express = require("express")();
 const Http = require("http").createServer(Express);
 const Socketio = require("socket.io")(Http);
@@ -11,10 +12,15 @@ Http.listen(process.env.PORT || 4000);
 var players = {};
 var bullets = [];
 var clients = Socketio.sockets.clients().connected;
+var walls = [
+  { x1: 100, y1: 0, x2: 100, y2: 100 },
+  { x1: 100, y1: 100, x2: 300, y2: 100 },
+  { x1: 300, y1: 100, x2: 300, y2: 400 },
+];
 
 Socketio.on("connection", (socket) => {
   players[socket.id] = new Player();
-
+  socket.emit("map", walls);
   socket.on("move", (data) => {
     players[socket.id].moves[data] = true;
   });
@@ -39,7 +45,7 @@ Socketio.on("connection", (socket) => {
   socket.on("shotgun", () => {
     for (let offset = -15; offset <= 15; offset += 10) {
       bullets.push(
-        new Bullet(
+        new ShotgunBullet(
           players[socket.id].x,
           players[socket.id].y,
           players[socket.id].angle + offset,
@@ -73,6 +79,35 @@ function isHit(bullet) {
   return false;
 }
 
+function isWallCollision(object) {
+  for (let i = 0; i < walls.length; i++) {
+    let wall = walls[i];
+    const isVertical = wall.x1 - wall.x2 == 0;
+    const wallWidth = 10;
+    let wallX = (wall.x1 + wall.x2) / 2;
+    let wallY = (wall.y1 + wall.y2) / 2;
+    const wallLength = isVertical
+      ? Math.abs(wall.y1 - wall.y2)
+      : Math.abs(wall.x1 - wall.x2);
+
+    if (
+      (isVertical &&
+        object.x >= wallX - wallWidth - object.size / 2 &&
+        object.y <= wallY + wallLength / 2 + wallWidth &&
+        object.y >= wallY - wallLength / 2 - wallWidth &&
+        object.x <= wallX + wallWidth + object.size / 2) ||
+      (!isVertical &&
+        object.x >= wallX - wallLength / 2 - wallWidth &&
+        object.y <= wallY + wallWidth + object.size / 2 &&
+        object.y >= wallY - wallWidth - object.size / 2 &&
+        object.x <= wallX + wallLength / 2 + wallWidth)
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function wallCollison(data) {
   if (data.x >= 630) {
     data.x = 630;
@@ -89,13 +124,18 @@ function wallCollison(data) {
     data.velY = 0;
   }
 }
+function bulletExpired(bullet) {
+  return bullet.expTime <= Date.now();
+}
 
+//TODO: set expiration to bullet and check with system time of the server then delete it
 function render() {
   //bullets
   for (let i = 0; i < bullets.length; i++) {
     let bullet = bullets[i];
     bullet.move();
-    if (bullet.wallCollision() || isHit(bullet)) {
+    //bullet.wallCollision() || is commented from the if condition below
+    if (isHit(bullet) || bulletExpired(bullet) || isWallCollision(bullet)) {
       bullets.splice(i, 1);
       i--;
     }
@@ -103,7 +143,15 @@ function render() {
   //players
   Object.keys(players).map((id) => {
     let player = players[id];
+    let playerX = player.x;
+    let playerY = player.y;
     player.move();
+    if (isWallCollision(player)) {
+      player.x = playerX;
+      player.y = playerY;
+      player.velY = 0;
+      player.velX = 0;
+    }
   });
   Socketio.emit("render", { players, bullets });
 }
