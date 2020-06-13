@@ -1,11 +1,13 @@
+const { rndInt } = require("../UtilStuff");
+
 class Bullet {
-  constructor(playerX, playerY, angle, socket) {
-    this.x = playerX;
-    this.y = playerY;
-    this.angle = angle;
-    this.socket = socket;
+  constructor(player) {
+    this.x = player.x;
+    this.y = player.y;
+    this.angle = player.angle + rndInt(-5, 5);
+    this.socket = player.socket;
     this.speed = 3;
-    this.damage = 3;
+    this.damage = 1;
     this.size = 3;
     this.expTime = Date.now() + 2000;
   }

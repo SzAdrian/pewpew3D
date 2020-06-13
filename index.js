@@ -1,6 +1,6 @@
-const Player = require("./Player");
-const Bullet = require("./Bullet");
-const ShotgunBullet = require("./ShotgunBullet");
+const Player = require("./models/Player");
+const Bullet = require("./models/Bullet");
+const ShotgunBullet = require("./models/ShotgunBullet");
 const Express = require("express")();
 const Http = require("http").createServer(Express);
 const Socketio = require("socket.io")(Http);
@@ -19,7 +19,7 @@ var walls = [
 ];
 
 Socketio.on("connection", (socket) => {
-  players[socket.id] = new Player();
+  players[socket.id] = new Player(socket.id);
   socket.emit("map", walls);
   socket.on("move", (data) => {
     players[socket.id].moves[data] = true;
@@ -32,28 +32,20 @@ Socketio.on("connection", (socket) => {
   });
 
   socket.on("shoot", () => {
-    bullets.push(
-      new Bullet(
-        players[socket.id].x,
-        players[socket.id].y,
-        players[socket.id].angle,
-        socket.id
-      )
-    );
-  });
-
-  socket.on("shotgun", () => {
-    for (let offset = -15; offset <= 15; offset += 10) {
-      bullets.push(
-        new ShotgunBullet(
-          players[socket.id].x,
-          players[socket.id].y,
-          players[socket.id].angle + offset,
-          socket.id
-        )
-      );
+    let player = players[socket.id];
+    if (player.weapon) {
+      [...player.fire()].forEach((bullet) => {
+        bullets.push(bullet);
+      });
     }
   });
+
+  // socket.on("shotgun", () => {
+  //   let player = players[socket.id];
+  //   for (let offset = -15; offset <= 15; offset += 4) {
+  //     bullets.push(new ShotgunBullet(player, player.angle + offset));
+  //   }
+  // });
 
   socket.on("disconnect", () => {
     delete players[socket.id];

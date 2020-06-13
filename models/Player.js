@@ -1,7 +1,10 @@
-const { rndInt } = require("./UtilStuff");
+const { rndInt } = require("../UtilStuff");
+const Pistol = require("./Pistol");
+const Shotgun = require("./Shotgun");
 
 class Player {
-  constructor() {
+  constructor(socket) {
+    this.socket = socket;
     this.x = rndInt(0, 640);
     this.y = rndInt(0, 480);
     this.name = `Player${rndInt(0, 480)}`;
@@ -18,6 +21,7 @@ class Player {
       left: false,
       right: false,
     };
+    this.weapon = new Pistol();
   }
   move() {
     if (this.moves["up"]) {
@@ -50,6 +54,13 @@ class Player {
 
   bulletHit(bullet) {
     this.health -= bullet.damage;
+  }
+
+  fire() {
+    if (this.weapon) {
+      let bullets = this.weapon.fire(this);
+      return bullets;
+    } else return null;
   }
 }
 
