@@ -21,7 +21,7 @@ class Player {
       left: false,
       right: false,
     };
-    this.weapon = new Pistol();
+    this.weapon = new Shotgun();
   }
   move() {
     if (this.moves["up"]) {
