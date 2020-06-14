@@ -70,7 +70,16 @@ function isHit(bullet) {
   }
   return false;
 }
-
+let renderDist = 250;
+function isInRenderDistance(player, object) {
+  var dist_points =
+    (object.x - player.x) * (object.x - player.x) +
+    (object.y - player.y) * (object.y - player.y);
+  if (dist_points < renderDist * renderDist) {
+    return true;
+  }
+  return false;
+}
 function isWallCollision(object) {
   for (let i = 0; i < walls.length; i++) {
     let wall = walls[i];
@@ -119,7 +128,18 @@ function wallCollison(data) {
 function bulletExpired(bullet) {
   return bullet.expTime <= Date.now();
 }
+function getFilteredPlayers(id) {
+  let filtered = {};
+  let player = players[id];
 
+  for (let playerId of Object.keys(players)) {
+    let comperTo = players[playerId];
+    if (isInRenderDistance(player, comperTo) || playerId === id) {
+      filtered[playerId] = comperTo;
+    }
+  }
+  return filtered;
+}
 //TODO: set expiration to bullet and check with system time of the server then delete it
 function render() {
   //bullets
@@ -145,7 +165,15 @@ function render() {
       player.velX = 0;
     }
   });
-  Socketio.emit("render", { players, bullets });
+  Object.keys(players).forEach((id) => {
+    Socketio.to(id).emit("render", {
+      players: getFilteredPlayers(id),
+      bullets: bullets.filter((bullet) => {
+        isInRenderDistance(players[id], bullet);
+      }),
+    });
+  });
+  //Socketio.emit("render", { players, bullets });
 }
 
 setInterval(() => {
