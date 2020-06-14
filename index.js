@@ -140,6 +140,17 @@ function getFilteredPlayers(id) {
   }
   return filtered;
 }
+function getFilteredBullets(id) {
+  let filtered = [];
+  let player = players[id];
+
+  for (let bullet of bullets) {
+    if (isInRenderDistance(player, bullet)) {
+      filtered.push(bullet);
+    }
+  }
+  return filtered;
+}
 //TODO: set expiration to bullet and check with system time of the server then delete it
 function render() {
   //bullets
@@ -168,9 +179,7 @@ function render() {
   Object.keys(players).forEach((id) => {
     Socketio.to(id).emit("render", {
       players: getFilteredPlayers(id),
-      bullets: bullets.filter((bullet) => {
-        isInRenderDistance(players[id], bullet);
-      }),
+      bullets: getFilteredBullets(id),
     });
   });
   //Socketio.emit("render", { players, bullets });
