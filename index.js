@@ -46,13 +46,6 @@ Socketio.on("connection", (socket) => {
     }
   });
 
-  // socket.on("shotgun", () => {
-  //   let player = players[socket.id];
-  //   for (let offset = -15; offset <= 15; offset += 4) {
-  //     bullets.push(new ShotgunBullet(player, player.angle + offset));
-  //   }
-  // });
-
   socket.on("disconnect", () => {
     delete players[socket.id];
   });

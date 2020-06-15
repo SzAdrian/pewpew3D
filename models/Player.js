@@ -16,6 +16,7 @@ class Player {
     this.angle = 0;
     this.size = 10;
     this.moves = {
+      walk: false,
       up: false,
       down: false,
       left: false,
@@ -24,6 +25,8 @@ class Player {
     this.weapon = new Shotgun();
   }
   move() {
+    this.friction = this.moves["walk"] ? 0.75 : 0.96;
+
     if (this.moves["up"]) {
       if (this.velY > -this.speed) {
         this.velY--;
