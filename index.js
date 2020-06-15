@@ -15,7 +15,6 @@ var bullets = [];
 var clients = Socketio.sockets.clients().connected;
 
 var walls = [
-  { x1: 300, y1: 400, x2: 500, y2: 600 },
   { x1: 0, y1: 0, x2: 2500, y2: 0, width: 5 },
   { x1: 0, y1: 2500, x2: 2500, y2: 2500, width: 5 },
   { x1: 0, y1: 0, x2: 0, y2: 2500, width: 5 },
