@@ -5,6 +5,7 @@ const Express = require("express")();
 const Http = require("http").createServer(Express);
 const Socketio = require("socket.io")(Http);
 const cors = require("cors");
+var inside = require("point-in-polygon");
 
 Express.use(cors());
 Http.listen(process.env.PORT || 4000);
@@ -13,9 +14,14 @@ var players = {};
 var bullets = [];
 var clients = Socketio.sockets.clients().connected;
 var walls = [
+  { x1: 0, y1: 0, x2: 2500, y2: 0 },
+  { x1: 0, y1: 2500, x2: 2500, y2: 2500 },
+  { x1: 0, y1: 0, x2: 0, y2: 2500 },
+  { x1: 2500, y1: 0, x2: 2500, y2: 2500 },
   { x1: 100, y1: 0, x2: 100, y2: 100 },
   { x1: 100, y1: 100, x2: 300, y2: 100 },
   { x1: 300, y1: 100, x2: 300, y2: 400 },
+  { x1: 300, y1: 400, x2: 500, y2: 600 },
 ];
 
 Socketio.on("connection", (socket) => {
@@ -80,6 +86,188 @@ function isInRenderDistance(player, object) {
   }
   return false;
 }
+function calcAreaOfTriang(Ax, Ay, Bx, By, Cx, Cy) {
+  return Math.abs((Ax * (By - Cy) + Bx * (Cy - Ay) + Cx * (Ay - By)) / 2);
+}
+function isWallCollisionNew(object) {
+  for (let i = 0; i < walls.length; i++) {
+    let wall = walls[i];
+    const wallWidth = 20;
+
+    let angle =
+      Math.atan2(wall.y2 - wall.y1, wall.x2 - wall.x1) * (180 / Math.PI);
+    let c1x =
+      wall.x1 + (wallWidth / 2) * Math.cos((Math.PI * (angle + 90)) / 180);
+    let c1y =
+      wall.y1 + (wallWidth / 2) * Math.sin((Math.PI * (angle + 90)) / 180);
+
+    let c2x =
+      wall.x1 + (wallWidth / 2) * Math.cos((Math.PI * (angle - 90)) / 180);
+    let c2y =
+      wall.y1 + (wallWidth / 2) * Math.sin((Math.PI * (angle - 90)) / 180);
+
+    let c3x =
+      wall.x2 + (wallWidth / 2) * Math.cos((Math.PI * (angle + 90)) / 180);
+    let c3y =
+      wall.y2 + (wallWidth / 2) * Math.sin((Math.PI * (angle + 90)) / 180);
+
+    let c4x =
+      wall.x2 + (wallWidth / 2) * Math.cos((Math.PI * (angle - 90)) / 180);
+    let c4y =
+      wall.y2 + (wallWidth / 2) * Math.sin((Math.PI * (angle - 90)) / 180);
+
+    let wallArea =
+      Math.sqrt(Math.pow(c1x - c2x, 2) + Math.pow(c1y - c2y, 2)) *
+      Math.sqrt(Math.pow(c2x - c4x, 2) + Math.pow(c2y - c4y, 2));
+
+    let area1 = calcAreaOfTriang(
+      c1x,
+      c1y,
+      c2x,
+      c2y,
+      object.x + object.size,
+      object.y
+    );
+    let area2 = calcAreaOfTriang(
+      c1x,
+      c1y,
+      c3x,
+      c3y,
+      object.x + object.size,
+      object.y
+    );
+    let area3 = calcAreaOfTriang(
+      c2x,
+      c2y,
+      c4x,
+      c4y,
+      object.x + object.size,
+      object.y
+    );
+    let area4 = calcAreaOfTriang(
+      c3x,
+      c3y,
+      c4x,
+      c4y,
+      object.x + object.size,
+      object.y
+    );
+
+    let area5 = calcAreaOfTriang(
+      c1x,
+      c1y,
+      c2x,
+      c2y,
+      object.x - object.size,
+      object.y
+    );
+    let area6 = calcAreaOfTriang(
+      c1x,
+      c1y,
+      c3x,
+      c3y,
+      object.x - object.size,
+      object.y
+    );
+    let area7 = calcAreaOfTriang(
+      c2x,
+      c2y,
+      c4x,
+      c4y,
+      object.x - object.size,
+      object.y
+    );
+    let area8 = calcAreaOfTriang(
+      c3x,
+      c3y,
+      c4x,
+      c4y,
+      object.x - object.size,
+      object.y
+    );
+
+    let area9 = calcAreaOfTriang(
+      c1x,
+      c1y,
+      c2x,
+      c2y,
+      object.x,
+      object.y + object.size
+    );
+    let area10 = calcAreaOfTriang(
+      c1x,
+      c1y,
+      c3x,
+      c3y,
+      object.x,
+      object.y + object.size
+    );
+    let area11 = calcAreaOfTriang(
+      c2x,
+      c2y,
+      c4x,
+      c4y,
+      object.x,
+      object.y + object.size
+    );
+    let area12 = calcAreaOfTriang(
+      c3x,
+      c3y,
+      c4x,
+      c4y,
+      object.x,
+      object.y + object.size
+    );
+
+    let area13 = calcAreaOfTriang(
+      c1x,
+      c1y,
+      c2x,
+      c2y,
+      object.x,
+      object.y - object.size
+    );
+    let area14 = calcAreaOfTriang(
+      c1x,
+      c1y,
+      c3x,
+      c3y,
+      object.x,
+      object.y - object.size
+    );
+    let area15 = calcAreaOfTriang(
+      c2x,
+      c2y,
+      c4x,
+      c4y,
+      object.x,
+      object.y - object.size
+    );
+    let area16 = calcAreaOfTriang(
+      c3x,
+      c3y,
+      c4x,
+      c4y,
+      object.x,
+      object.y - object.size
+    );
+
+    if (
+      area1 + area2 + area3 + area4 > wallArea &&
+      area5 + area6 + area7 + area8 > wallArea &&
+      area9 + area10 + area11 + area12 > wallArea &&
+      area13 + area14 + area15 + area16 > wallArea
+    ) {
+      continue;
+    } else {
+      console.log("wall" + Date.now().toPrecision());
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function isWallCollision(object) {
   for (let i = 0; i < walls.length; i++) {
     let wall = walls[i];
@@ -158,7 +346,7 @@ function render() {
     let bullet = bullets[i];
     bullet.move();
     //bullet.wallCollision() || is commented from the if condition below
-    if (isHit(bullet) || bulletExpired(bullet) || isWallCollision(bullet)) {
+    if (isHit(bullet) || bulletExpired(bullet) || isWallCollisionNew(bullet)) {
       bullets.splice(i, 1);
       i--;
     }
@@ -169,7 +357,7 @@ function render() {
     let playerX = player.x;
     let playerY = player.y;
     player.move();
-    if (isWallCollision(player)) {
+    if (isWallCollisionNew(player)) {
       player.x = playerX;
       player.y = playerY;
       player.velY = 0;
