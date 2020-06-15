@@ -115,7 +115,7 @@ function isWallCollisionNew(object) {
     let wallArea =
       Math.sqrt(Math.pow(c1x - c2x, 2) + Math.pow(c1y - c2y, 2)) *
       Math.sqrt(Math.pow(c2x - c4x, 2) + Math.pow(c2y - c4y, 2));
-
+    wallArea += 0.01; //its magic dont touch dis
     let area1 = calcAreaOfTriang(
       c1x,
       c1y,
@@ -249,9 +249,9 @@ function isWallCollisionNew(object) {
     );
 
     if (
-      area1 + area2 + area3 + area4 <= wallArea &&
-      area5 + area6 + area7 + area8 <= wallArea &&
-      area9 + area10 + area11 + area12 <= wallArea &&
+      area1 + area2 + area3 + area4 <= wallArea ||
+      area5 + area6 + area7 + area8 <= wallArea ||
+      area9 + area10 + area11 + area12 <= wallArea ||
       area13 + area14 + area15 + area16 <= wallArea
     ) {
       return true;
@@ -339,7 +339,7 @@ function render() {
     let bullet = bullets[i];
     bullet.move();
     //bullet.wallCollision() || is commented from the if condition below
-    if (isHit(bullet) || bulletExpired(bullet) || isWallCollision(bullet)) {
+    if (isHit(bullet) || bulletExpired(bullet) || isWallCollisionNew(bullet)) {
       bullets.splice(i, 1);
       i--;
     }
@@ -347,10 +347,12 @@ function render() {
   //players
   Object.keys(players).map((id) => {
     let player = players[id];
+
     let playerX = player.x;
     let playerY = player.y;
+
     player.move();
-    if (isWallCollision(player)) {
+    if (isWallCollisionNew(player)) {
       player.x = playerX;
       player.y = playerY;
       player.velY = 0;
