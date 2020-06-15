@@ -92,6 +92,7 @@ function isWallCollisionNew(object) {
 
     let angle =
       Math.atan2(wall.y2 - wall.y1, wall.x2 - wall.x1) * (180 / Math.PI);
+
     let c1x =
       wall.x1 + (wallWidth / 2) * Math.cos((Math.PI * (angle + 90)) / 180);
     let c1y =
@@ -316,7 +317,20 @@ function getFilteredPlayers(id) {
   for (let playerId of Object.keys(players)) {
     let comperTo = players[playerId];
     if (isInRenderDistance(player, comperTo) || playerId === id) {
-      filtered[playerId] = comperTo;
+      filtered[playerId] = {
+        viewDistance: comperTo.viewDistance,
+        socket: comperTo.socket,
+        x: comperTo.x,
+        y: comperTo.y,
+        name: comperTo.name,
+        health: comperTo.health,
+        angle: comperTo.angle,
+        size: comperTo.size,
+        weapon: true,
+      };
+    }
+    if (id == playerId) {
+      filtered[playerId]["moves"] = comperTo.moves;
     }
   }
   return filtered;
