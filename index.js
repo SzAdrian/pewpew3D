@@ -13,15 +13,17 @@ Http.listen(process.env.PORT || 4000);
 var players = {};
 var bullets = [];
 var clients = Socketio.sockets.clients().connected;
+
 var walls = [
-  { x1: 0, y1: 0, x2: 2500, y2: 0 },
-  { x1: 0, y1: 2500, x2: 2500, y2: 2500 },
-  { x1: 0, y1: 0, x2: 0, y2: 2500 },
-  { x1: 2500, y1: 0, x2: 2500, y2: 2500 },
-  { x1: 100, y1: 0, x2: 100, y2: 100 },
-  { x1: 100, y1: 100, x2: 300, y2: 100 },
-  { x1: 300, y1: 100, x2: 300, y2: 400 },
   { x1: 300, y1: 400, x2: 500, y2: 600 },
+  { x1: 0, y1: 0, x2: 2500, y2: 0, width: 5 },
+  { x1: 0, y1: 2500, x2: 2500, y2: 2500, width: 5 },
+  { x1: 0, y1: 0, x2: 0, y2: 2500, width: 5 },
+  { x1: 2500, y1: 0, x2: 2500, y2: 2500, width: 5 },
+  { x1: 100, y1: 0, x2: 100, y2: 100, width: 5 },
+  { x1: 100, y1: 100, x2: 300, y2: 100, width: 5 },
+  { x1: 300, y1: 100, x2: 300, y2: 400, width: 5 },
+  { x1: 300, y1: 400, x2: 500, y2: 600, width: 5 },
 ];
 
 Socketio.on("connection", (socket) => {
@@ -69,23 +71,25 @@ function isHit(bullet) {
   }
   return false;
 }
-let renderDist = 250;
+
 function isInRenderDistance(player, object) {
   var dist_points =
     (object.x - player.x) * (object.x - player.x) +
     (object.y - player.y) * (object.y - player.y);
-  if (dist_points < renderDist * renderDist) {
+  if (dist_points < player.viewDistance * player.viewDistance) {
     return true;
   }
   return false;
 }
+
 function calcAreaOfTriang(Ax, Ay, Bx, By, Cx, Cy) {
   return Math.abs((Ax * (By - Cy) + Bx * (Cy - Ay) + Cx * (Ay - By)) / 2);
 }
+
 function isWallCollisionNew(object) {
   for (let i = 0; i < walls.length; i++) {
     let wall = walls[i];
-    const wallWidth = 20;
+    const wallWidth = wall.width;
 
     let angle =
       Math.atan2(wall.y2 - wall.y1, wall.x2 - wall.x1) * (180 / Math.PI);
@@ -246,14 +250,11 @@ function isWallCollisionNew(object) {
     );
 
     if (
-      area1 + area2 + area3 + area4 > wallArea &&
-      area5 + area6 + area7 + area8 > wallArea &&
-      area9 + area10 + area11 + area12 > wallArea &&
-      area13 + area14 + area15 + area16 > wallArea
+      area1 + area2 + area3 + area4 <= wallArea &&
+      area5 + area6 + area7 + area8 <= wallArea &&
+      area9 + area10 + area11 + area12 <= wallArea &&
+      area13 + area14 + area15 + area16 <= wallArea
     ) {
-      continue;
-    } else {
-      console.log("wall" + Date.now().toPrecision());
       return true;
     }
   }
@@ -265,7 +266,7 @@ function isWallCollision(object) {
   for (let i = 0; i < walls.length; i++) {
     let wall = walls[i];
     const isVertical = wall.x1 - wall.x2 == 0;
-    const wallWidth = 10;
+    const wallWidth = wall.width;
     let wallX = (wall.x1 + wall.x2) / 2;
     let wallY = (wall.y1 + wall.y2) / 2;
     const wallLength = isVertical

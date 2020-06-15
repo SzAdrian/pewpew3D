@@ -4,6 +4,7 @@ const Shotgun = require("./Shotgun");
 
 class Player {
   constructor(socket) {
+    this.viewDistance = 250;
     this.socket = socket;
     this.x = rndInt(0, 640);
     this.y = rndInt(0, 480);
