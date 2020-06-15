@@ -346,7 +346,7 @@ function render() {
     let bullet = bullets[i];
     bullet.move();
     //bullet.wallCollision() || is commented from the if condition below
-    if (isHit(bullet) || bulletExpired(bullet) || isWallCollisionNew(bullet)) {
+    if (isHit(bullet) || bulletExpired(bullet) || isWallCollision(bullet)) {
       bullets.splice(i, 1);
       i--;
     }
@@ -357,7 +357,7 @@ function render() {
     let playerX = player.x;
     let playerY = player.y;
     player.move();
-    if (isWallCollisionNew(player)) {
+    if (isWallCollision(player)) {
       player.x = playerX;
       player.y = playerY;
       player.velY = 0;
