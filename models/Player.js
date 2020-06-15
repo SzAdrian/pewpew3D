@@ -26,7 +26,7 @@ class Player {
   }
   move() {
     this.friction = this.moves["walk"] ? 0.75 : 0.96;
-
+    this.speed = this.moves["walk"] ? 1.45 : 2;
     if (this.moves["up"]) {
       if (this.velY > -this.speed) {
         this.velY--;
