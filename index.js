@@ -1,6 +1,5 @@
 const Player = require("./models/Player");
 const Bullet = require("./models/Bullet");
-const ShotgunBullet = require("./models/ShotgunBullet");
 const Express = require("express")();
 const Http = require("http").createServer(Express);
 const Socketio = require("socket.io")(Http);
@@ -14,20 +13,22 @@ var players = {};
 var bullets = [];
 var clients = Socketio.sockets.clients().connected;
 
-var walls = [
-  { x1: 0, y1: 0, x2: 2500, y2: 0, width: 5 },
-  { x1: 0, y1: 2500, x2: 2500, y2: 2500, width: 5 },
-  { x1: 0, y1: 0, x2: 0, y2: 2500, width: 5 },
-  { x1: 2500, y1: 0, x2: 2500, y2: 2500, width: 5 },
-  { x1: 100, y1: 0, x2: 100, y2: 100, width: 5 },
-  { x1: 100, y1: 100, x2: 300, y2: 100, width: 5 },
-  { x1: 300, y1: 100, x2: 300, y2: 400, width: 5 },
-  { x1: 300, y1: 400, x2: 500, y2: 600, width: 5 },
-];
+var map = {
+  walls: [
+    { x1: 0, y1: 0, x2: 2500, y2: 0, width: 15 },
+    { x1: 0, y1: 2500, x2: 2500, y2: 2500, width: 15 },
+    { x1: 0, y1: 0, x2: 0, y2: 2500, width: 15 },
+    { x1: 2500, y1: 0, x2: 2500, y2: 2500, width: 15 },
+    { x1: 100, y1: 0, x2: 100, y2: 100, width: 15 },
+    { x1: 100, y1: 100, x2: 300, y2: 100, width: 15 },
+    { x1: 300, y1: 100, x2: 300, y2: 400, width: 15 },
+    { x1: 300, y1: 400, x2: 500, y2: 600, width: 15 },
+  ],
+};
 
 Socketio.on("connection", (socket) => {
   players[socket.id] = new Player(socket.id);
-  socket.emit("map", walls);
+  socket.emit("map", map);
   socket.on("move", (data) => {
     players[socket.id].moves[data] = true;
   });
@@ -36,6 +37,9 @@ Socketio.on("connection", (socket) => {
   });
   socket.on("stop", (data) => {
     players[socket.id].moves[data] = false;
+  });
+  socket.on("reload", () => {
+    players[socket.id].weapon.reload();
   });
 
   socket.on("shoot", () => {
@@ -86,8 +90,8 @@ function calcAreaOfTriang(Ax, Ay, Bx, By, Cx, Cy) {
 }
 
 function isWallCollisionNew(object) {
-  for (let i = 0; i < walls.length; i++) {
-    let wall = walls[i];
+  for (let i = 0; i < map.walls.length; i++) {
+    let wall = map.walls[i];
     const wallWidth = wall.width;
 
     let angle =
@@ -116,7 +120,9 @@ function isWallCollisionNew(object) {
     let wallArea =
       Math.sqrt(Math.pow(c1x - c2x, 2) + Math.pow(c1y - c2y, 2)) *
       Math.sqrt(Math.pow(c2x - c4x, 2) + Math.pow(c2y - c4y, 2));
-    wallArea += 0.01; //its magic dont touch dis
+
+    wallArea += 0.001; //its magic dont touch dis
+
     let area1 = calcAreaOfTriang(
       c1x,
       c1y,
@@ -263,8 +269,8 @@ function isWallCollisionNew(object) {
 }
 
 function isWallCollision(object) {
-  for (let i = 0; i < walls.length; i++) {
-    let wall = walls[i];
+  for (let i = 0; i < map.walls.length; i++) {
+    let wall = map.walls[i];
     const isVertical = wall.x1 - wall.x2 == 0;
     const wallWidth = wall.width;
     let wallX = (wall.x1 + wall.x2) / 2;
@@ -291,23 +297,7 @@ function isWallCollision(object) {
   return false;
 }
 
-function wallCollison(data) {
-  if (data.x >= 630) {
-    data.x = 630;
-    data.velX = 0;
-  } else if (data.x <= 10) {
-    data.x = 10;
-    data.velX = 0;
-  }
-  if (data.y >= 470) {
-    data.y = 470;
-    data.velY = 0;
-  } else if (data.y <= 10) {
-    data.y = 10;
-    data.velY = 0;
-  }
-}
-function bulletExpired(bullet) {
+function isBulletExpired(bullet) {
   return bullet.expTime <= Date.now();
 }
 function getFilteredPlayers(id) {
@@ -326,11 +316,18 @@ function getFilteredPlayers(id) {
         health: comperTo.health,
         angle: comperTo.angle,
         size: comperTo.size,
-        weapon: true,
+        weapon: comperTo.weapon != null,
       };
     }
     if (id == playerId) {
       filtered[playerId]["moves"] = comperTo.moves;
+      if (filtered[playerId].weapon) {
+        filtered[playerId].weapon = {
+          name: comperTo.weapon.name,
+          currentBullets: comperTo.weapon.magBullets,
+          remainingBullets: comperTo.weapon.remainingBullets,
+        };
+      }
     }
   }
   return filtered;
@@ -353,7 +350,11 @@ function render() {
     let bullet = bullets[i];
     bullet.move();
     //bullet.wallCollision() || is commented from the if condition below
-    if (isHit(bullet) || bulletExpired(bullet) || isWallCollisionNew(bullet)) {
+    if (
+      isHit(bullet) ||
+      isBulletExpired(bullet) ||
+      isWallCollisionNew(bullet)
+    ) {
       bullets.splice(i, 1);
       i--;
     }

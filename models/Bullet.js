@@ -1,24 +1,20 @@
 const { rndInt } = require("../UtilStuff");
 
 class Bullet {
-  constructor(player) {
-    this.x = player.x;
-    this.y = player.y;
-    this.angle = player.angle + rndInt(-5, 5);
+  constructor(player, speed, damage, recoil, size, expTime) {
+    this.x = player.x + 20 * Math.cos((Math.PI * player.angle) / 180);
+    this.y = player.y + 20 * Math.sin((Math.PI * player.angle) / 180);
+    this.angle = player.angle + rndInt(-recoil, recoil);
     this.socket = player.socket;
-    this.speed = 3;
-    this.damage = 1;
-    this.size = 3;
-    this.expTime = Date.now() + 2000;
+    this.speed = speed;
+    this.damage = damage;
+    this.size = size;
+    this.expTime = Date.now() + expTime;
   }
 
   move() {
     this.x = this.x + this.speed * Math.cos((Math.PI * this.angle) / 180);
     this.y = this.y + this.speed * Math.sin((Math.PI * this.angle) / 180);
-  }
-
-  wallCollision() {
-    return this.x < 0 || this.x > 640 || this.y < 0 || this.y > 480;
   }
 }
 

@@ -1,6 +1,7 @@
 const { rndInt } = require("../UtilStuff");
 const Pistol = require("./Pistol");
 const Shotgun = require("./Shotgun");
+const Sniper = require("./Sniper");
 
 class Player {
   constructor(socket) {
@@ -23,7 +24,7 @@ class Player {
       left: false,
       right: false,
     };
-    this.weapon = new Shotgun();
+    this.weapon = new Sniper();
   }
   move() {
     this.friction = this.moves["walk"] ? 0.75 : 0.96;
