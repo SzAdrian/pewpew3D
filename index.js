@@ -326,6 +326,7 @@ function getFilteredPlayers(id) {
           name: comperTo.weapon.name,
           currentBullets: comperTo.weapon.magBullets,
           remainingBullets: comperTo.weapon.remainingBullets,
+          reloading: comperTo.weapon.isReloading,
         };
       }
     }

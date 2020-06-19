@@ -7,8 +7,8 @@ class Player {
   constructor(socket) {
     this.viewDistance = 250;
     this.socket = socket;
-    this.x = rndInt(0, 640);
-    this.y = rndInt(0, 480);
+    this.x = rndInt(50, 2450);
+    this.y = rndInt(50, 2450);
     this.name = `Player${rndInt(0, 480)}`;
     this.health = 100;
     this.velY = 0;
@@ -24,7 +24,7 @@ class Player {
       left: false,
       right: false,
     };
-    this.weapon = new Sniper();
+    this.weapon = new Pistol();
   }
   move() {
     this.friction = this.moves["walk"] ? 0.75 : 0.96;
@@ -64,8 +64,15 @@ class Player {
   fire() {
     if (this.weapon) {
       let bullets = this.weapon.fire(this);
+      if (this.weapon.magBullets == 0 && this.weapon.remainingBullets == 0) {
+        this.dropWeapon();
+      }
       return bullets;
     } else return null;
+  }
+
+  dropWeapon() {
+    this.weapon = null;
   }
 }
 

@@ -8,7 +8,9 @@ class Shotgun extends Weapon {
       5,
       15,
       "Shotgun",
-      20
+      20,
+      1300,
+      800
     );
   }
 
