@@ -1,6 +1,7 @@
 const { rndInt } = require("../UtilStuff");
 const Pistol = require("./Pistol");
 const Shotgun = require("./Shotgun");
+const SMG = require("./SMG");
 const Sniper = require("./Sniper");
 
 class Player {
@@ -24,8 +25,13 @@ class Player {
       left: false,
       right: false,
     };
-    this.weapon = new Pistol();
+    this.weapon = this.pickRandomWeapon();
   }
+
+  pickRandomWeapon() {
+    return [new Pistol(), new SMG(), new Sniper(), new Shotgun()][rndInt(0, 3)];
+  }
+
   move() {
     this.friction = this.moves["walk"] ? 0.75 : 0.96;
     this.speed = this.moves["walk"] ? 1.45 : 2;

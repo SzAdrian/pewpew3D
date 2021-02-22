@@ -4,12 +4,32 @@ class Bullet {
   constructor(player, speed, damage, recoil, size, expTime) {
     this.x = player.x + 20 * Math.cos((Math.PI * player.angle) / 180);
     this.y = player.y + 20 * Math.sin((Math.PI * player.angle) / 180);
-    this.angle = player.angle + rndInt(-recoil, recoil);
+    this.angle = player.angle + this.calculateRecoil(player, recoil);
     this.socket = player.socket;
     this.speed = speed;
     this.damage = damage;
     this.size = size;
     this.expTime = Date.now() + expTime;
+  }
+
+  calculateRecoil(player, recoil) {
+    const isPlayerMoving =
+      Math.abs(player.velX) >= 0.3 || Math.abs(player.velY) >= 0.3;
+
+    const isPlayerWalking = player.moves.walk;
+    if (isPlayerMoving) {
+      if (isPlayerWalking) {
+        //WALKING
+        const reducedRecoil = recoil * 0.6;
+        return rndInt(-reducedRecoil, reducedRecoil);
+      }
+      //RUNNING
+      return rndInt(-recoil, recoil);
+    } else {
+      //STANDING
+      const reducedRecoil = recoil * 0.45;
+      return rndInt(-reducedRecoil, reducedRecoil);
+    }
   }
 
   move() {

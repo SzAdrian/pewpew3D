@@ -9,20 +9,23 @@ class Shotgun extends Weapon {
       15,
       "Shotgun",
       20,
-      1300,
-      800
+      750,
+      1000
     );
   }
 
   fire(player) {
+    let bullets = [];
     if (this.magBullets == 0) {
       this.reload();
-      return [];
+      return bullets;
     }
-    if (this.magBullets > 0) {
+    if (
+      this.magBullets > 0 &&
+      Date.now() - this.lastShotTime >= this.fireRate
+    ) {
       this.magBullets -= 1;
-
-      let bullets = [];
+      this.lastShotTime = Date.now();
       for (let offset = -25; offset <= 25; offset += 10) {
         bullets.push(
           new Bullet(
@@ -35,8 +38,8 @@ class Shotgun extends Weapon {
           )
         );
       }
-      return bullets;
     }
+    return bullets;
   }
 }
 module.exports = Shotgun;

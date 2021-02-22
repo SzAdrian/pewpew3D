@@ -14,14 +14,20 @@ class Sniper extends Weapon {
     );
   }
   fire(player) {
+    let bullet = [];
     if (this.magBullets == 0) {
       this.reload();
-      return [];
+      return bullet;
     }
-    if (this.magBullets > 0) {
+    if (
+      this.magBullets > 0 &&
+      Date.now() - this.lastShotTime >= this.fireRate
+    ) {
       this.magBullets -= 1;
+      this.lastShotTime = Date.now();
+
       this.reload();
-      return [
+      bullet = [
         new Bullet(
           player,
           this.bullet.speed,
@@ -32,6 +38,7 @@ class Sniper extends Weapon {
         ),
       ];
     }
+    return bullet;
   }
 }
 

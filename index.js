@@ -5,6 +5,7 @@ const Http = require("http").createServer(Express);
 const Socketio = require("socket.io")(Http);
 const cors = require("cors");
 var inside = require("point-in-polygon");
+const { generateMap } = require("./MapGenerator");
 
 Express.use(cors());
 Http.listen(process.env.PORT || 4000);
@@ -13,18 +14,7 @@ var players = {};
 var bullets = [];
 var clients = Socketio.sockets.clients().connected;
 
-var map = {
-  walls: [
-    { x1: 0, y1: 0, x2: 2500, y2: 0, width: 15 },
-    { x1: 0, y1: 2500, x2: 2500, y2: 2500, width: 15 },
-    { x1: 0, y1: 0, x2: 0, y2: 2500, width: 15 },
-    { x1: 2500, y1: 0, x2: 2500, y2: 2500, width: 15 },
-    { x1: 100, y1: 0, x2: 100, y2: 100, width: 15 },
-    { x1: 100, y1: 100, x2: 300, y2: 100, width: 15 },
-    { x1: 300, y1: 100, x2: 300, y2: 400, width: 15 },
-    { x1: 300, y1: 400, x2: 500, y2: 600, width: 15 },
-  ],
-};
+var map = generateMap();
 
 Socketio.on("connection", (socket) => {
   players[socket.id] = new Player(socket.id);
@@ -40,6 +30,9 @@ Socketio.on("connection", (socket) => {
   });
   socket.on("reload", () => {
     players[socket.id].weapon.reload();
+  });
+  socket.on("setName", (data) => {
+    players[socket.id].name = data;
   });
 
   socket.on("shoot", () => {
@@ -93,6 +86,9 @@ function isWallCollisionNew(object) {
   for (let i = 0; i < map.walls.length; i++) {
     let wall = map.walls[i];
     const wallWidth = wall.width;
+    if (wall.hidden) {
+      continue;
+    }
 
     let angle =
       Math.atan2(wall.y2 - wall.y1, wall.x2 - wall.x1) * (180 / Math.PI);
@@ -123,6 +119,7 @@ function isWallCollisionNew(object) {
 
     wallArea += 0.001; //its magic dont touch dis
 
+    //Right side
     let area1 = calcAreaOfTriang(
       c1x,
       c1y,
@@ -156,6 +153,7 @@ function isWallCollisionNew(object) {
       object.y
     );
 
+    //Left Right
     let area5 = calcAreaOfTriang(
       c1x,
       c1y,
@@ -189,6 +187,7 @@ function isWallCollisionNew(object) {
       object.y
     );
 
+    //Bottom side
     let area9 = calcAreaOfTriang(
       c1x,
       c1y,
@@ -222,6 +221,7 @@ function isWallCollisionNew(object) {
       object.y + object.size
     );
 
+    //Top side
     let area13 = calcAreaOfTriang(
       c1x,
       c1y,
@@ -379,6 +379,7 @@ function render() {
     Socketio.to(id).emit("render", {
       players: getFilteredPlayers(id),
       bullets: getFilteredBullets(id),
+      time: Date.now(),
     });
   });
   //Socketio.emit("render", { players, bullets });

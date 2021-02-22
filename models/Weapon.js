@@ -20,12 +20,18 @@ class Weapon {
     this.reloadTime = reloadTime;
     this.recoil = recoil;
     this.isReloading = false;
+    this.lastShotTime = 0;
   }
   fire(player) {
     if (this.magBullets == 0) {
       this.reload();
     }
-    if (this.magBullets > 0 && !this.isReloading) {
+    if (
+      this.magBullets > 0 &&
+      !this.isReloading &&
+      Date.now() - this.lastShotTime >= this.fireRate
+    ) {
+      this.lastShotTime = Date.now();
       this.magBullets -= 1;
       return [
         new Bullet(
