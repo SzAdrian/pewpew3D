@@ -5,6 +5,7 @@ class Bullet {
     this.x = player.x + 20 * Math.cos((Math.PI * player.angle) / 180);
     this.y = player.y + 20 * Math.sin((Math.PI * player.angle) / 180);
     this.angle = player.angle + this.calculateRecoil(player, recoil);
+    this.player = player;
     this.socket = player.socket;
     this.speed = speed;
     this.damage = damage;

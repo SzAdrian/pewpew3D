@@ -6,6 +6,10 @@ const Socketio = require("socket.io")(Http);
 const cors = require("cors");
 var inside = require("point-in-polygon");
 const { generateMap } = require("./MapGenerator");
+const Shotgun = require("./models/Shotgun");
+const Pistol = require("./models/Pistol");
+const Sniper = require("./models/Sniper");
+const SMG = require("./models/SMG");
 
 Express.use(cors());
 Http.listen(process.env.PORT || 4000);
@@ -13,11 +17,17 @@ Http.listen(process.env.PORT || 4000);
 var players = {};
 var bullets = [];
 var clients = Socketio.sockets.clients().connected;
-
+let weaponFactory = {
+  Shotgun: Shotgun,
+  Pistol: Pistol,
+  Sniper: Sniper,
+  SMG: SMG,
+};
 var map = generateMap();
 
 Socketio.on("connection", (socket) => {
   players[socket.id] = new Player(socket.id);
+
   socket.emit("map", map);
   socket.on("move", (data) => {
     players[socket.id].moves[data] = true;
@@ -33,6 +43,10 @@ Socketio.on("connection", (socket) => {
   });
   socket.on("setName", (data) => {
     players[socket.id].name = data;
+    socket.broadcast.emit("playerConnected", `${data} has connected`);
+  });
+  socket.on("setWeapon", (data) => {
+    players[socket.id].weapon = new weaponFactory[data]();
   });
 
   socket.on("shoot", () => {
@@ -376,6 +390,13 @@ function render() {
     }
   });
   Object.keys(players).forEach((id) => {
+    //infinite emits so far
+    if (players[id].health <= 0) {
+      Socketio.emit(
+        "killFeed",
+        `${players[id].lastBulletHitFrom.name} has killed ${players[id].name}`
+      );
+    }
     Socketio.to(id).emit("render", {
       players: getFilteredPlayers(id),
       bullets: getFilteredBullets(id),
