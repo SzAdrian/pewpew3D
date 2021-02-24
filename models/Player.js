@@ -7,7 +7,7 @@ const Sniper = require("./Sniper");
 class Player {
   constructor(socket) {
     this.viewDistance = 250;
-    this.socket = socket.id;
+    this.socket = socket;
     this.x = rndInt(50, 2450);
     this.y = rndInt(50, 2450);
     this.name = `Player${rndInt(0, 480)}`;
@@ -27,6 +27,15 @@ class Player {
     };
     this.weapon = this.pickRandomWeapon();
     this.lastBulletHitFrom = null;
+  }
+
+  respawn() {
+    this.health = 100;
+    this.velY = 0;
+    this.velX = 0;
+    this.x = rndInt(50, 2450);
+    this.y = rndInt(50, 2450);
+    this.weapon = this.pickRandomWeapon();
   }
 
   pickRandomWeapon() {
@@ -66,7 +75,7 @@ class Player {
 
   bulletHit(bullet) {
     this.health -= bullet.damage;
-    this.lastBulletHitFrom = bullet.player;
+    this.lastBulletHitFrom = bullet.player.name;
   }
 
   fire() {

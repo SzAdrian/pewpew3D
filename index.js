@@ -27,7 +27,6 @@ var map = generateMap();
 
 Socketio.on("connection", (socket) => {
   players[socket.id] = new Player(socket.id);
-
   socket.emit("map", map);
   socket.on("move", (data) => {
     players[socket.id].moves[data] = true;
@@ -390,12 +389,13 @@ function render() {
     }
   });
   Object.keys(players).forEach((id) => {
-    //infinite emits so far
-    if (players[id].health <= 0) {
+    const player = players[id];
+    if (player.health <= 0) {
       Socketio.emit(
         "killFeed",
-        `${players[id].lastBulletHitFrom.name} has killed ${players[id].name}`
+        `${player.lastBulletHitFrom} has killed ${player.name}`
       );
+      player.respawn();
     }
     Socketio.to(id).emit("render", {
       players: getFilteredPlayers(id),
@@ -403,7 +403,6 @@ function render() {
       time: Date.now(),
     });
   });
-  //Socketio.emit("render", { players, bullets });
 }
 
 setInterval(() => {
